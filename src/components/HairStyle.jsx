@@ -18,304 +18,14 @@ export default function AdvancedHairStyle() {
   const [loading, setLoading] = useState(false);
   const [confidence, setConfidence] = useState(0);
   const [selectedStyle, setSelectedStyle] = useState(null);
-  const [cameraMode, setCameraMode] = useState(false);
   const [faceFeatures, setFaceFeatures] = useState({});
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [animationStep, setAnimationStep] = useState(0);
 
   const imageRef = useRef();
-  const canvasRef = useRef();
-  const videoRef = useRef();
-  const streamRef = useRef();
+  const fileInputRef = useRef();
 
-  const advancedHairstyleMap = {
-    round: {
-      styles: [
-        {
-          name: "Modern Pompadour",
-          description: "Classic style with height to elongate face",
-          difficulty: "Medium",
-          maintenance: "High",
-          popularity: 95,
-          image: "🔥",
-        },
-        {
-          name: "Textured Quiff",
-          description: "Contemporary look with natural texture",
-          difficulty: "Easy",
-          maintenance: "Medium",
-          popularity: 88,
-          image: "✨",
-        },
-        {
-          name: "High Fade Undercut",
-          description: "Sharp contrast with volume on top",
-          difficulty: "Hard",
-          maintenance: "High",
-          popularity: 92,
-          image: "⚡",
-        },
-        {
-          name: "Side-Swept Fringe",
-          description: "Soft asymmetrical style",
-          difficulty: "Easy",
-          maintenance: "Low",
-          popularity: 78,
-          image: "🌟",
-        },
-      ],
-    },
-    oval: {
-      styles: [
-        {
-          name: "Classic Buzz Cut",
-          description: "Clean, minimal, universally flattering",
-          difficulty: "Easy",
-          maintenance: "Low",
-          popularity: 85,
-          image: "💎",
-        },
-        {
-          name: "Textured Crop",
-          description: "Modern short style with texture",
-          difficulty: "Medium",
-          maintenance: "Medium",
-          popularity: 90,
-          image: "🔥",
-        },
-        {
-          name: "Slicked Back",
-          description: "Sophisticated professional look",
-          difficulty: "Easy",
-          maintenance: "Medium",
-          popularity: 82,
-          image: "👔",
-        },
-        {
-          name: "Messy Waves",
-          description: "Relaxed, natural flowing style",
-          difficulty: "Easy",
-          maintenance: "Low",
-          popularity: 75,
-          image: "🌊",
-        },
-      ],
-    },
-    square: {
-      styles: [
-        {
-          name: "Soft Undercut",
-          description: "Reduces angular features",
-          difficulty: "Medium",
-          maintenance: "High",
-          popularity: 87,
-          image: "✨",
-        },
-        {
-          name: "Layered Comb Over",
-          description: "Adds softness to jawline",
-          difficulty: "Medium",
-          maintenance: "Medium",
-          popularity: 80,
-          image: "🎯",
-        },
-        {
-          name: "Curved Fringe",
-          description: "Softens sharp features",
-          difficulty: "Easy",
-          maintenance: "Medium",
-          popularity: 74,
-          image: "🌈",
-        },
-        {
-          name: "Tousled Top",
-          description: "Casual messy style",
-          difficulty: "Easy",
-          maintenance: "Low",
-          popularity: 79,
-          image: "🌪️",
-        },
-      ],
-    },
-    heart: {
-      styles: [
-        {
-          name: "Full Beard Combo",
-          description: "Balances narrow chin",
-          difficulty: "Medium",
-          maintenance: "High",
-          popularity: 86,
-          image: "🧔",
-        },
-        {
-          name: "Side Part Classic",
-          description: "Traditional balanced look",
-          difficulty: "Easy",
-          maintenance: "Low",
-          popularity: 81,
-          image: "📚",
-        },
-        {
-          name: "Chin-Length Layers",
-          description: "Adds width at jawline",
-          difficulty: "Hard",
-          maintenance: "High",
-          popularity: 73,
-          image: "🎭",
-        },
-      ],
-    },
-    oblong: {
-      styles: [
-        {
-          name: "Horizontal Fringe",
-          description: "Shortens face appearance",
-          difficulty: "Medium",
-          maintenance: "Medium",
-          popularity: 84,
-          image: "📏",
-        },
-        {
-          name: "Side-Swept Bangs",
-          description: "Creates width illusion",
-          difficulty: "Easy",
-          maintenance: "Medium",
-          popularity: 77,
-          image: "🎨",
-        },
-        {
-          name: "Layered Bob",
-          description: "Adds horizontal volume",
-          difficulty: "Hard",
-          maintenance: "High",
-          popularity: 82,
-          image: "💫",
-        },
-      ],
-    },
-    diamond: {
-      styles: [
-        {
-          name: "Chin-Length Cut",
-          description: "Balances cheekbone width",
-          difficulty: "Medium",
-          maintenance: "Medium",
-          popularity: 80,
-          image: "💎",
-        },
-        {
-          name: "Deep Side Part",
-          description: "Asymmetrical balance",
-          difficulty: "Easy",
-          maintenance: "Low",
-          popularity: 76,
-          image: "⚖️",
-        },
-      ],
-    },
-    unknown: [
-      {
-        name: "Photo Analysis Failed",
-        description:
-          "Please retake with clear front face view in good lighting",
-        difficulty: "N/A",
-        maintenance: "N/A",
-        popularity: 0,
-        image: "📸",
-      },
-    ],
-  };
-
-  // Advanced face analysis
-  const analyzeFaceGeometry = (keypoints) => {
-    // Calculate key measurements
-    const face = keypoints;
-
-    // Forehead width (temples)
-    const foreheadWidth = Math.abs(face[10][0] - face[151][0]);
-
-    // Cheekbone width (widest part)
-    const cheekWidth = Math.abs(face[127][0] - face[356][0]);
-
-    // Jawline width
-    const jawWidth = Math.abs(face[172][0] - face[397][0]);
-
-    // Face length
-    const faceLength = Math.abs(face[10][1] - face[152][1]);
-
-    // Face width (overall)
-    const faceWidth = Math.max(foreheadWidth, cheekWidth, jawWidth);
-
-    // Calculate ratios
-    const lengthToWidthRatio = faceLength / faceWidth;
-    const foreheadToJawRatio = foreheadWidth / jawWidth;
-    const cheekToJawRatio = cheekWidth / jawWidth;
-
-    // Store measurements for later use
-    setFaceFeatures({
-      foreheadWidth,
-      cheekWidth,
-      jawWidth,
-      faceLength,
-      lengthToWidthRatio,
-      foreheadToJawRatio,
-      cheekToJawRatio,
-    });
-
-    // Advanced shape detection
-    let shape = "unknown";
-    let conf = 0.5;
-
-    if (lengthToWidthRatio >= 1.5) {
-      shape = "oblong";
-      conf = 0.85;
-    } else if (lengthToWidthRatio <= 1.1 && cheekToJawRatio >= 1.2) {
-      shape = "round";
-      conf = 0.88;
-    } else if (foreheadToJawRatio >= 1.3 && cheekToJawRatio >= 1.2) {
-      shape = "heart";
-      conf = 0.82;
-    } else if (cheekToJawRatio >= 1.4 && foreheadToJawRatio <= 0.9) {
-      shape = "diamond";
-      conf = 0.78;
-    } else if (lengthToWidthRatio >= 1.2 && lengthToWidthRatio <= 1.4) {
-      shape = "oval";
-      conf = 0.92;
-    } else if (
-      Math.abs(foreheadWidth - cheekWidth) / faceWidth < 0.1 &&
-      Math.abs(cheekWidth - jawWidth) / faceWidth < 0.1
-    ) {
-      shape = "square";
-      conf = 0.86;
-    }
-
-    return { shape, confidence: conf };
-  };
-
-  // Initialize TensorFlow and face detection model
-  useEffect(() => {
-    const loadModel = async () => {
-      setLoading(true);
-      try {
-        await tf.ready();
-        setIsModelLoaded(true);
-
-        // Animation effect
-        const timer = setInterval(() => {
-          setAnimationStep((prev) => (prev + 1) % 4);
-        }, 500);
-
-        setTimeout(() => {
-          clearInterval(timer);
-          setLoading(false);
-        }, 2000);
-      } catch (error) {
-        console.error("Model loading failed:", error);
-        setLoading(false);
-      }
-    };
-    loadModel();
-  }, []);
+  // ... (keep all your existing hairstyle map and other functions)
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -329,212 +39,13 @@ export default function AdvancedHairStyle() {
     reader.readAsDataURL(file);
   };
 
-  const analyzeImage = async (imageSrc) => {
-    if (!isModelLoaded) return;
-
-    setLoading(true);
-    setFaceShape("");
-    setSuggestions([]);
-    setSelectedStyle(null);
-
-    try {
-      // Simulate realistic processing time
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Simple but reliable face detection using basic image analysis
-      const img = imageRef.current;
-      if (!img) {
-        throw new Error("Image not found");
-      }
-
-      // Basic validation - check if image looks like it could contain a face
-      const isValidImage = await validateBasicImage(img);
-
-      if (!isValidImage) {
-        setFaceShape("no_face");
-        setSuggestions([
-          {
-            name: "No Face Detected",
-            description:
-              "Please upload a clear photo with your face visible. Make sure you're facing the camera directly with good lighting.",
-            difficulty: "N/A",
-            maintenance: "N/A",
-            popularity: 0,
-            image: "❌",
-          },
-        ]);
-        setConfidence(0);
-      } else {
-        // If image passes basic validation, analyze face shape
-        const { shape, confidence: shapeConfidence } = analyzeFaceShape();
-
-        setFaceShape(shape);
-        setConfidence(shapeConfidence);
-        setSuggestions(
-          advancedHairstyleMap[shape]?.styles || advancedHairstyleMap.unknown
-        );
-      }
-    } catch (error) {
-      console.error("Analysis failed:", error);
-      // Default to working state - assume face is present
-      const { shape, confidence: shapeConfidence } = analyzeFaceShape();
-      setFaceShape(shape);
-      setConfidence(shapeConfidence);
-      setSuggestions(
-        advancedHairstyleMap[shape]?.styles || advancedHairstyleMap.unknown
-      );
-    }
-
-    setLoading(false);
+  const triggerCamera = () => {
+    // This will open the native camera on mobile devices
+    // and file picker with camera option on desktop
+    fileInputRef.current.click();
   };
 
-  // Simplified image validation
-  const validateBasicImage = async (img) => {
-    try {
-      // Very basic checks - just ensure it's a reasonable image
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = Math.min(img.naturalWidth, 300);
-      canvas.height = Math.min(img.naturalHeight, 300);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // Check if image has reasonable size
-      if (canvas.width < 50 || canvas.height < 50) {
-        return false;
-      }
-
-      // Check if image has some color variation (not just solid color)
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-
-      let firstR = data[0],
-        firstG = data[1],
-        firstB = data[2];
-      let hasVariation = false;
-
-      // Sample some pixels to check for variation
-      for (let i = 0; i < data.length; i += 400) {
-        // Sample every 100th pixel
-        if (
-          Math.abs(data[i] - firstR) > 30 ||
-          Math.abs(data[i + 1] - firstG) > 30 ||
-          Math.abs(data[i + 2] - firstB) > 30
-        ) {
-          hasVariation = true;
-          break;
-        }
-      }
-
-      return hasVariation;
-    } catch (error) {
-      // If validation fails, assume image is valid
-      return true;
-    }
-  };
-
-  // Simplified face shape analysis
-  const analyzeFaceShape = () => {
-    // Generate realistic face shape analysis
-    const shapes = ["round", "oval", "square", "heart", "oblong"];
-    const weights = [0.25, 0.35, 0.2, 0.12, 0.08]; // Oval most common
-
-    // Weighted random selection for more realistic results
-    const random = Math.random();
-    let cumulative = 0;
-    let selectedShape = "oval";
-
-    for (let i = 0; i < shapes.length; i++) {
-      cumulative += weights[i];
-      if (random < cumulative) {
-        selectedShape = shapes[i];
-        break;
-      }
-    }
-
-    // Generate realistic confidence score
-    const confidence = 0.75 + Math.random() * 0.2; // Between 75-95%
-
-    return { shape: selectedShape, confidence };
-  };
-useEffect(() => {
-  return () => {
-    // Clean up camera stream on unmount
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-  };
-}, []);
-  const startCamera = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: 640, height: 480 },
-    });
-    streamRef.current = stream;
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.onloadedmetadata = () => {
-        videoRef.current.play();
-      };
-    }
-    setCameraMode(true);
-  } catch (error) {
-    console.error("Camera error:", error);
-    alert("Camera access denied. Please use file upload instead.");
-  }
-};
-
- const capturePhoto = () => {
-  if (!videoRef.current || !canvasRef.current) return;
-
-  // Wait a brief moment to ensure video is properly playing
-  setTimeout(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    const capturedImage = canvas.toDataURL('image/jpeg');
-    setImageSrc(capturedImage);
-    stopCamera();
-    analyzeImage(capturedImage);
-  }, 200);
-};
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-    }
-    setCameraMode(false);
-  };
-
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Easy":
-        return "text-green-700 bg-green-100";
-      case "Medium":
-        return "text-yellow-700 bg-yellow-100";
-      case "Hard":
-        return "text-red-700 bg-red-100";
-      default:
-        return "text-gray-700 bg-gray-100";
-    }
-  };
-
-  const getMaintenanceColor = (maintenance) => {
-    switch (maintenance) {
-      case "Low":
-        return "text-blue-700 bg-blue-100";
-      case "Medium":
-        return "text-purple-700 bg-purple-100";
-      case "High":
-        return "text-orange-700 bg-orange-100";
-      default:
-        return "text-gray-700 bg-gray-100";
-    }
-  };
+  // ... (keep all your existing analyze functions)
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
@@ -577,7 +88,7 @@ useEffect(() => {
         {/* Upload/Camera Section */}
         <div className="max-w-4xl mx-auto mb-12">
           <div className="bg-gray-50 rounded-3xl p-8 border border-gray-200 shadow-lg">
-            {!cameraMode && !imageSrc && (
+            {!imageSrc && (
               <div className="text-center space-y-8">
                 <div className="flex flex-col sm:flex-row gap-6 justify-center">
                   <label className="group relative cursor-pointer">
@@ -593,28 +104,23 @@ useEffect(() => {
                     </div>
                   </label>
 
-                  <button
-                    onClick={startCamera}
-                    className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-4 rounded-2xl font-semibold flex items-center gap-3 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                    style={{
-                      backgroundColor: "#1F2937", // bg-gray-800
-                      color: "#FFFFFF", // text-white
-                      paddingLeft: "2rem", // px-8
-                      paddingRight: "2rem",
-                      paddingTop: "1rem", // py-4
-                      paddingBottom: "1rem",
-                      borderRadius: "1rem", // rounded-2xl
-                      fontWeight: 600, // font-semibold
-                      display: "flex", // flex
-                      alignItems: "center", // items-center
-                      gap: "0.75rem", // gap-3
-                      transition: "all 300ms ease", // transition-all duration-300
-                      transform: "scale(1)",
-                    }}
-                  >
-                    <Camera className="w-6 h-6" />
-                    Use Camera
-                  </button>
+                  <label className="group relative cursor-pointer">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    <button
+                      onClick={triggerCamera}
+                      className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-4 rounded-2xl font-semibold flex items-center gap-3 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                    >
+                      <Camera className="w-6 h-6" />
+                      Use Camera
+                    </button>
+                  </label>
                 </div>
 
                 <div className="text-gray-600 text-sm">
@@ -626,61 +132,8 @@ useEffect(() => {
               </div>
             )}
 
-            {/* Camera Mode */}
-            {cameraMode && (
-              <div className="text-center space-y-6">
-<video
-  ref={videoRef}
-  autoPlay
-  playsInline
-  muted
-  className="w-full max-w-md mx-auto rounded-2xl shadow-2xl border-4 border-gray-300 bg-black"
-/>
-                <div className="flex gap-4 justify-center">
-                  <button
-                    onClick={capturePhoto}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transform transition-all duration-300 hover:scale-105"
-                    style={{
-                      backgroundColor: "#16A34A", // bg-green-600
-                      color: "#FFFFFF", // text-white
-                      paddingLeft: "1.5rem", // px-6
-                      paddingRight: "1.5rem",
-                      paddingTop: "0.75rem", // py-3
-                      paddingBottom: "0.75rem",
-                      borderRadius: "0.75rem", // rounded-xl
-                      fontWeight: 600, // font-semibold
-                      transform: "scale(1)", // transform (default scale)
-                      transition: "all 300ms ease", // transition-all duration-300
-                      // hover:bg-green-700 and hover:scale-105 must be handled via JS or CSS
-                    }}
-                  >
-                    📸 Capture
-                  </button>
-                  <button
-                    onClick={stopCamera}
-                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transform transition-all duration-300 hover:scale-105"
-                    style={{
-                      backgroundColor: "#16A34A", // bg-green-600
-                      color: "#FFFFFF", // text-white
-                      paddingLeft: "1.5rem", // px-6
-                      paddingRight: "1.5rem",
-                      paddingTop: "0.75rem", // py-3
-                      paddingBottom: "0.75rem",
-                      borderRadius: "0.75rem", // rounded-xl
-                      fontWeight: 600, // font-semibold
-                      transform: "scale(1)", // transform (default scale)
-                      transition: "all 300ms ease", // transition-all duration-300
-                      // hover:bg-green-700 and hover:scale-105 must be handled via JS or CSS
-                    }}
-                  >
-                    ❌ Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Uploaded Image Display */}
-            {imageSrc && !cameraMode && (
+            {imageSrc && (
               <div className="text-center">
                 <div className="relative inline-block mb-6">
                   <img
@@ -974,9 +427,6 @@ useEffect(() => {
             </div>
           </div>
         )}
-
-        {/* Hidden Canvas for Camera Capture */}
-        <canvas ref={canvasRef} className="hidden" />
 
         {/* Footer */}
         <div className="text-center mt-16 text-black">
